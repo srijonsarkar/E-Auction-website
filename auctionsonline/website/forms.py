@@ -19,7 +19,7 @@ class LoginForm(forms.Form):
     password = forms.CharField(max_length=45)
 
 class TopUpForm(forms.Form):
-    amount = forms.DecimalField(max_digits=6, decimal_places=2)
+    amount = forms.DecimalField(max_digits=7, decimal_places=2)
 
 class CommentForm(forms.Form):
     comment = forms.CharField(widget=forms.Textarea)
