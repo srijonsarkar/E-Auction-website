@@ -34,7 +34,6 @@ def increase_bid(user, auction):
     bid.save()
     auction.number_of_bids += 1
     auction.save()
-    return 1
 
     auction.save()
 
