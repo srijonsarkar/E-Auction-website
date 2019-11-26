@@ -12,6 +12,14 @@ from website.models import User, Product, Auction, Watchlist, Bid, Chat
 from website.validation import validate_login, validate_registration
 from website.transactions import increase_bid, remaining_time, update_balance
 
+import smtplib 
+from email.mime.multipart import MIMEMultipart 
+from email.mime.text import MIMEText 
+from email.mime.base import MIMEBase 
+from email import encoders 
+
+
+
 def index(request):
     """
     The main page of the website
@@ -22,7 +30,7 @@ def index(request):
         The index page with the current and future auctions.
     """
     auctions = Auction.objects.filter(time_ending__gte=datetime.now()).order_by('time_starting')
-        
+    
     try:
         if request.session['username']:
             user = User.objects.filter(username=request.session['username'])
@@ -101,12 +109,38 @@ def bid_page(request, auction_id):
             for item in w:
                 a = Auction.objects.filter(id=item.auction_id.id)
                 watchlist = list(chain(watchlist, a))
-            
+
+            lastBid = Bid.objects.filter(user_id = user[0].id).filter(auction_id = auction_id).order_by('-bid_time')
+            if len(lastBid) !=0:
+                nBids_prev = len(Bid.objects.filter( bid_time__lt = lastBid[0].bid_time ))
+                userPaid = auction[0].base_price + nBids_prev * 0.05 * auction[0].base_price
+                toPay = float(current_cost) - userPaid
+            else:
+                toPay = current_cost
+
+
+            if user[0].balance < float(toPay):
+                return render(request, 'bid3.html',
+                {
+                    'auction': auction[0], 
+                    'user': user[0], 
+                    'stats': stats,
+                    'watchlist':watchlist
+                })
+            elif len(latest_bid)!=0 and user[0].id == latest_bid[0].user_id.id:
+                return render(request, 'bid2.html',
+                {
+                    'auction': auction[0], 
+                    'user': user[0], 
+                    'stats': stats,
+                    'watchlist':watchlist
+                })
+
             return render(request, 'bid.html',
             {
                 'auction': auction[0], 
                 'user': user[0], 
-                'stats': stats, 
+                'stats': stats,
                 'watchlist':watchlist
             })
     except KeyError:
@@ -170,14 +204,20 @@ def raise_bid(request, auction_id):
         
     try:
         if request.session['username']:
+
+            user = User.objects.get(username=request.session['username'])
+            increase_bid(user, auction)
+
+            '''
             user = User.objects.get(username=request.session['username'])
             nBids = Bid.objects.filter(user_id = user.id).filter(auction_id = auction)      # bids the user has already placed in this auction
             currentCost = auction.base_price + auction.number_of_bids * 0.05 * auction.base_price
 
+
             if len(nBids)==0:
                 toPay = currentCost
             else:
-                lastBid = Bid.objects.filter(user_id = user).order_by('-bid_time')[0]
+                lastBid = nBids.order_by('-bid_time')[0]
                 nBids_prev = len(Bid.objects.filter( bid_time__lt = lastBid.bid_time ))
                 userPaid = auction.base_price + nBids_prev * 0.05 * auction.base_price
                 toPay = currentCost - userPaid
@@ -192,22 +232,10 @@ def raise_bid(request, auction_id):
                         increase_bid(user, auction)
                     else:
                         # need to load a message saying that current bid is user only, hence can't bid again
-                        return render(request, 'bid3.html',
-                        {
-                            'auction': auction[0], 
-                            'user': user[0], 
-                            'stats': stats, 
-                            'watchlist':watchlist
-                        })
+                        
             else:
                 # need to flash message saying that user has insufficient balance to make bid
-                return render(request, 'bid2.html',
-                {
-                    'auction': auction[0], 
-                    'user': user[0], 
-                    'stats': stats, 
-                    'watchlist':watchlist
-                })
+            '''
             return bid_page(request, auction_id)
     except KeyError:
         return index(request)
@@ -470,7 +498,7 @@ def save_auction(request):
                     time_starting = d_t,
                     category = form.cleaned_data['category'],
                     image = form.cleaned_data['image']
-                )
+            )
 
             new_prod.save()  
 
@@ -489,6 +517,69 @@ def save_auction(request):
             )
 
             new_auc.save()
+
+            #####################################################################
+            # need to send email here to seller acknowledging product up for sale
+            '''
+            toaddr = user[0].email
+               
+            # instance of MIMEMultipart 
+            msg = MIMEMultipart() 
+              
+            # storing the senders email address   
+            msg['From'] = fromaddr 
+              
+            # storing the receivers email address  
+            msg['To'] = toaddr 
+              
+            # storing the subject  
+            msg['Subject'] = "Welcome to Ghanta Auctions"
+              
+            # string to store the body of the mail 
+            body = "Hello new User!!!"
+              
+            # attach the body with the msg instance 
+            msg.attach(MIMEText(body, 'plain')) 
+              
+            # open the file to be sent  
+            filename = "File_name_with_extension"
+            attachment = open("Path of the file", "rb") 
+              
+            # instance of MIMEBase and named as p 
+            p = MIMEBase('application', 'octet-stream') 
+              
+            # To change the payload into encoded form 
+            p.set_payload((attachment).read()) 
+              
+            # encode into base64 
+            encoders.encode_base64(p) 
+               
+            #p.add_header('Content-Disposition', "attachment; filename= %s" % filename) 
+              
+            # attach the instance 'p' to instance 'msg' 
+            #msg.attach(p) 
+              
+            # creates SMTP session 
+            s = smtplib.SMTP('smtp.gmail.com', 587) 
+              
+            # start TLS for security 
+            s.starttls() 
+              
+            # Authentication 
+            s.login(fromaddr, "password") 
+              
+            # Converts the Multipart msg into a string 
+            text = msg.as_string() 
+              
+            # sending the mail 
+            s.sendmail(fromaddr, toaddr, text) 
+              
+            # terminating the session 
+            s.quit() 
+            '''
+            #####################################################################
+
+
         
     return index(request)
 
@@ -526,6 +617,43 @@ def register(request):
                     country = form.cleaned_data['country'] 
                 )
                 user.save() # Save the object to the database.
+
+                #####################################################################
+                # need to send email here to new customer of the site
+                '''
+                toaddr = user.email
+                   
+                # instance of MIMEMultipart
+                msg = MIMEMultipart() 
+                  
+                # storing the senders email address   
+                msg['From'] = fromaddr 
+                # storing the receivers email address  
+                msg['To'] = toaddr 
+                # storing the subject  
+                msg['Subject'] = "Welcome to Ghanta Auctions!!"
+                # string to store the body of the mail 
+                body = "Hello new User!!!"
+                # attach the body with the msg instance 
+                msg.attach(MIMEText(body, 'plain')) 
+                # creates SMTP session 
+                s = smtplib.SMTP('smtp.gmail.com', 587) 
+                  
+                # start TLS for security 
+                s.starttls() 
+                # Authentication 
+                s.login(fromaddr, "password") 
+                # Converts the Multipart msg into a string 
+                text = msg.as_string() 
+                # sending the mail 
+                s.sendmail(fromaddr, toaddr, text) 
+                # terminating the session 
+                s.quit() 
+                '''
+
+                #####################################################################
+
+
     return index(request)
 
 def login_page(request):
