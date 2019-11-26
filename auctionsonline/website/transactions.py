@@ -35,7 +35,6 @@ def increase_bid(user, auction):
     auction.number_of_bids += 1
     auction.save()
 
-    auction.save()
 
 def remaining_time(auction):
     """
