@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" type="text/css" href="/static/css/products.css">
+</head>
+<body>
+{% now "Y-m-d-H-i-s" as todays_date %}
+<div class="container-fluid">
+    <div id="myCarousel" class="carousel slide" data-interval="false">
+    {% load custom_tags %}
+        {% for auction in auctions %}
+        {% if forloop.counter0|divisibleby:'4' %}
+            {% if forloop.counter0 != 0 %}
+            </div>
+            {% endif %}
+        <div class="carousel-inner row w-100 mx-auto">
+            {% if auctions|length == 1 %} <div class="carousel-item col-md-12 active">
+            {% elif auctions|length == 2 %} <div class="carousel-item col-md-6 active">
+            {% elif auctions|length == 3 %} <div class="carousel-item col-md-4 active">
+            {% else %} <div class="carousel-item col-md-3 active">
+            {% endif %}
+        {% else %}
+            {% if auctions|length == 1 %} <div class="carousel-item col-md-12">
+            {% elif auctions|length == 2 %} <div class="carousel-item col-md-6">
+            {% elif auctions|length == 3 %} <div class="carousel-item col-md-4">
+            {% else %} <div class="carousel-item col-md-3">
+            {% endif %}
+        {% endif %}
+            <div class="card">
+                <img class="card-img-top img-fluid" src='/media/{{ auction.product_id.image }}' alt="Card image cap">
+                <div class="card-body">
+                    <div id="item_name">
+                        <h4 class="card-title text-center">{{ auction.product_id.title }}</h4><hr>
+                    </div>
+                    <p class="card-text">{{ auction.product_id.description }}</p>
+                    {% if todays_date > auction.time_starting|date:'Y-m-d-H-i-s' %}
+                    <h4 class="card-title text-center">₹{{auction|current_price}}</h4>
+                    {% endif %}
+                    {% if todays_date > auction.time_starting|date:'Y-m-d-H-i-s' %}
+                    <p class="card-text" id="demo"><small class="text-muted">
+                        Auction ends in: {{ auction.time_ending|time_left }}
+                    </small></p>
+                    <!--
+                    <script>
+                        // Set the date we're counting down to
+                        //var countDownDate = new Date(time_left).getTime();
+
+                        // Update the count down every 1 second
+                        var x = setInterval(function() {
+
+                          var time = "{{ auction.time_ending|time_left }}" ;  
+                                                  
+                          // Find the distance between now and the count down date
+                          var distance =  String.toString(time)  ;//countDownDate - now;
+                            
+                          // Time calculations for days, hours, minutes and seconds
+                          var hours = distance.split(" ")[0].split("h")[0] ;//Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                          var minutes = distance.split(" ")[1].split("m")[0] ;//Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                          var seconds = Integer.parseInt(distance.split(" ")[2].split("s")[0]) ;//Math.floor((distance % (1000 * 60)) / 1000);
+                        
+                          // Output the result in an element with id="demo"
+                          document.getElementById("demo").innerHTML = days + "d " + hours + "h "
+                          + minutes + "m " + seconds + "s ";
+
+                          seconds = seconds - 1;
+                            
+                          // If the count down is over, write some text 
+                          if (distance.equals("0h 0m 0s")) {
+                            clearInterval(x);
+                            document.getElementById("demo").innerHTML = "EXPIRED";
+                          }
+                        }, 1000);
+                        </script>-->
+                    {% else %}
+                        <p class="card-text" id="demo"><small class="text-muted">
+                        Auction starts: {{ auction.time_starting|date:'d-m-Y H:i:s' }}
+                        </small></p>
+                    {% endif %}
+                    
+                    <!--
+                        For Bidding on Ongoing Auctions
+                    -->   
+                    <!--
+                    {% if request.session.username %}
+
+                        {% if auction.user_id == request.session.username.user_id %}
+
+                            <p><small class="text-muted">This is your product</small></p>
+
+                        {% else %}
+                            {% if todays_date > auction.time_starting|date:'Y-m-d-H-i-s' %}
+                                <div>
+                                    <button type="button" class="btn btn-primary bid_now_button" onclick="location.href='/website/bid/{{auction.id}}'">Bid Now</button>
+                                </div>
+                            {% endif %}
+                            <div>
+                                {% if watchlist %}
+                                    {% if watchlist|search:auction.id%}
+                                        <button type="button" class="btn btn-outline-primary watch_button" onclick="location.href='/website/watchlist/{{auction.id}}'">Unwatch</button>
+                                    {% else %}
+                                        <button type="button" class="btn btn-outline-primary watch_button" onclick="location.href='/website/watchlist/{{auction.id}}'">Watch</button>
+                                    {% endif %}
+                                {% else %}
+                                    <button type="button" class="btn btn-outline-primary watch_button" onclick="location.href='/website/watchlist/{{auction.id}}'">Watch</button>
+                                {% endif %}
+                            </div>
+                        {% endif %}
+
+                    {% else %}
+                        {% if todays_date > auction.time_starting|date:'Y-m-d-H-i-s' %}
+                            <div>
+                                <button type="button" class="btn btn-primary bid_now_button" href="#myModal" data-toggle="modal">Bid Now</button>
+                            </div>
+                        {% endif %}
+                        <div>
+                            <button type="button" class="btn btn-outline-primary watch_button" href="#myModal" data-toggle="modal">Watch</button>
+                        </div>
+
+                    {%endif%}
+
+                    -->
+
+                    
+
+                        {% if todays_date > auction.time_starting|date:'Y-m-d-H-i-s' %}
+                        {% if user != auction.user_id %}
+                        <div>
+                            <!-- BID NOW BUTTON -->
+                            {% if request.session.username %}
+                               <button type="button" class="btn btn-primary bid_now_button" onclick="location.href='/website/bid/{{auction.id}}'">Bid Now</button>
+                            {% else %}
+                               <!--<a id="login" href="#myModal" class="nav-link trigger-btn" data-toggle="modal">Login</a>-->
+                               <button type="button" class="btn btn-primary bid_now_button" href="#myModal" data-toggle="modal">Bid Now</button>
+                            {% endif %}
+                        <!--   <button type="button" class="btn btn-primary bid_now_button" onclick="location.href='/website/bid/{{auction.id}}'">Bid Now</button>-->
+                        </div>
+                        {% endif %}
+                        {% endif %}
+                        <div>
+                            
+                            <!--
+                                For Watching Existing Auctions
+                            -->
+
+                            <!-- WATCH BUTTON -->
+                            {% if request.session.username %}
+                                {% if user != auction.user_id %}
+                                {% if watchlist %}
+                                    {% if watchlist|search:auction.id%}
+                                        <button type="button" class="btn btn-outline-primary watch_button" onclick="location.href='/website/watchlist/{{auction.id}}'">Unwatch</button>
+                                    {% else %}
+                                        <button type="button" class="btn btn-outline-primary watch_button" onclick="location.href='/website/watchlist/{{auction.id}}'">Watch</button>
+                                    {% endif %}
+                                {% else %}
+                                        <button type="button" class="btn btn-outline-primary watch_button" onclick="location.href='/website/watchlist/{{auction.id}}'">Watch</button>
+                                {% endif %}
+                                {% endif %}
+                            {% else %}
+                               <button type="button" class="btn btn-outline-primary watch_button" href="#myModal" data-toggle="modal">Watch</button>
+                            {% endif %}
+                        </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+        
+        <!-- Login MODAL -->
+        <div id="myModal" class="modal fade text-center">
+        <div class="modal-dialog">
+            <div class="col-lg-8 col-sm-8 col-12 main-section">
+                <div class="modal-content">
+                    <div class="col-lg-12 col-sm-12 col-12 user-img">
+                        <img src="/static/images/man.png">
+                    </div>
+                    <div class="col-lg-12 col-sm-12 col-12 user-name">
+                        <h1>User Login</h1>
+                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    </div>
+                    <div class="col-lg-12 col-sm-12 col-12 form-input">
+                        <form method="post" action="/website/login/">{% csrf_token %}
+                            <div class="form-group">
+                                <input name="username" type="text" class="form-control" placeholder="Enter username">
+                            </div>
+                            <div class="form-group">
+                                <input name="password" type="password" class="form-control" placeholder="Password">
+                            </div>
+                            <button type="submit" class="btn btn-primary">Login</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

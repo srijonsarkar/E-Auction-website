@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>E-Auction@IITB - Item</title>
+    <link rel="stylesheet" type="text/css" href="/static/css/bid.css">
+</head>
+<body>
+{% extends 'index.html' %}
+{% block body %}
+<div id="bid-flexbox" class="d-flex flex-row">
+    <div class="p-2"><img id="preview_product" src="/media/{{ auction.product_id.image }}" /></div>
+    <div class="p-2">
+
+        <div id="bidding" class="jumbotron">
+            <div id="bid_table">
+            <table  class="table table-borderless">
+                <tbody>
+                    <tr>
+                        {% if stats.2 %}
+                        <td><small>Time left:</small></td>
+                        <td>{{ stats.0 }}</td>
+                        {% else %}
+                        <p>Auction Ended! The winner is : {{ stats.3 }}</p>
+                        {% endif %}
+                    </tr>
+                    <tr>
+                        <td><small>Current bid:</small></td>
+                        <td><b>INR {{stats.1}}₹</b></td>
+                        <td><small>[ {{ auction.number_of_bids }} bids ]</small></td>
+                    </tr>
+                </tbody>
+            </table>
+            </div>
+            {% if stats.2 %}
+            <div>
+                <button type="button" id="b_button" class="btn btn-primary" onclick="location.href='/website/bid/{{auction.id}}/raise_bid'">Bid</button>
+            </div>
+            {% endif %}
+            <div>
+                <button type="button" id="w_button" class="btn btn-outline-primary watch_button" onclick="location.href='/website/watchlist/{{auction.id}}'">
+                    {% load custom_tags %}
+                    {% if watchlist %}
+                        {% if watchlist|search:auction.id%}
+                            Unwatch
+                        {% else %}
+                            Watch
+                        {% endif %}
+                    {% else %}
+                        Watch
+                    {% endif %}
+                </button>
+            </div>
+        </div>
+
+        <div id="comments">
+            {% for c in stats.4 %}
+            {{ c.user_id.username }} : {{ c.message }}<br>
+            {% endfor %}
+        </div>
+
+        <form method="post" action="/website/bid/{{auction.id}}/comment/">{% csrf_token %}
+        <div class="form-group">
+            <label for="comment">Comment:</label>
+            <textarea class="form-control" rows="2" id="comment" name="comment"></textarea>
+        </div>
+
+        <button id="post_button" type="submit" class="btn btn-outline-primary">Post Comment</button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+</body>
+</html>
