@@ -33,8 +33,8 @@ def increase_bid(user, auction):
     bid.bid_time = timezone.localtime(timezone.now())
     bid.save()
     auction.number_of_bids += 1
-    auction.save()
 
+    auction.save()
 
 def remaining_time(auction):
     """
