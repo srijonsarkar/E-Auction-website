@@ -24,11 +24,6 @@ def increase_bid(user, auction):
         userPaid = auction.base_price + nBids_prev * 0.05 * auction.base_price
         toPay = currentCost - userPaid
 
-    print('Current cost : '+str(currentCost))
-    print('n bids prev :'+str(nBids_prev))
-    #print()
-    print('User paid : '+str(userPaid))
-
     user.balance = float(user.balance) - toPay
     user.save()
 
@@ -40,8 +35,6 @@ def increase_bid(user, auction):
     auction.number_of_bids += 1
     auction.save()
     return 1
-    #auction.time_ending = make_aware(timezone.now()) + timedelta(minutes=5)
-    #auction.time_ending = make_aware(datetime.now()) + timedelta(minutes=5)
 
     auction.save()
 
