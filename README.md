@@ -1,7 +1,7 @@
 # E-Auction-website
 Implemented an e-Auction site using django
 
-![alt text](https:/https://github.com/srijonsarkar/E-Auction-website/blob/master/auction_page.png?raw=true)
+![alt text](auction_page.png)
 
 The auction site allows new users to view present items up for auction and to sign if interested in any item.
 
